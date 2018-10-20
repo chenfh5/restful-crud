@@ -43,11 +43,11 @@ class PersonSet(GenericViewSet):
         # table filter
         obj = Person.objects.all()
         if is_not_blank(name):
-            obj = obj.filter(name__contains=name)
+            obj = obj.filter(name=name)
         if is_not_blank(phone):
             obj = obj.filter(phone=phone)
         if is_not_blank(age):
-            obj = obj.filter(age__lte=age)  # default is 1
+            obj = obj.filter(age__gte=age)  # default is 1
         if is_not_blank(address):
             obj = obj.filter(address__contains=address)
 
@@ -69,11 +69,12 @@ class PersonSet(GenericViewSet):
         # table filter
         obj = Person.objects.filter(name=name).filter(phone=phone)
         if obj.count() > 0:
+            obj = obj.get()  # need to get the instance, otherwise UNIQUE constraint failed caused by save()
             # table update
             if is_not_blank(age):
-                obj.first().age = age
+                obj.age = age
             if is_not_blank(address):
-                obj.first().address = address
+                obj.address = address
             obj.save()
             # table render
             return Response(model_to_dict(obj))
@@ -96,11 +97,12 @@ class PersonSet(GenericViewSet):
         if is_not_blank(phone):
             obj = obj.filter(phone=phone)
         if is_not_blank(age):
-            obj = obj.filter(age__lte=age)  # default is 1
+            obj = obj.filter(age=age)  # default is 1
         if is_not_blank(address):
-            obj = obj.filter(address__contains=address)
+            obj = obj.filter(address=address)
+        cnt = obj.count()
         obj.delete()
-        return Response('destroy %s records' % obj.count())
+        return Response('destroy %s records' % cnt)
 
 
 def is_not_blank(str):
