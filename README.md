@@ -27,9 +27,10 @@
 |U|http://localhost:8000/person/update1/?name=c3&phone=123&address=中国 （将修改其年龄到99）|
 |U|http://localhost:8000/person/update1/?name=c4&phone=123&age=101&address=中国 （将修改其年龄到99）|
 |`D`|http://localhost:8000/person/destroy1 （将删除全部record）|
-|`D`|http://localhost:8000/person/destroy1/?name=c3 （将删除名字是c3的record）|
-|`D`|http://localhost:8000/person/destroy1/?age=11 （将删除名字是c3的record）|
+|D|http://localhost:8000/person/destroy1/?name=c3 （将删除名字是c3的record）|
+|D|http://localhost:8000/person/destroy1/?age=11 （将删除名字是c3的record）|
 |D|http://localhost:8000/person/destroy1/?name=c6&age=12 （将删除名字是c6且其年龄是11的record）|
 
 ## Reference
 - [Django REST framework](https://www.django-rest-framework.org/)
+- [CN doc](https://www.jianshu.com/p/97c326198fb3)
