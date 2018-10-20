@@ -105,3 +105,4 @@ venv.bak/
 
 *.idea
 *.iml
+/rdemo/rdemo/migrations/0*_initial.py
