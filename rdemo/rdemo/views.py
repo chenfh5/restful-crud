@@ -195,7 +195,98 @@ class PersonRESTSet(GenericViewSet, Validation):
         return Response({"result": True, "data": "destroy %s records" % cnt, "message": "bkdata", "code": "89"})
 
 
+class PersonLevelSet(GenericViewSet, Validation):
+    lookup_field = 'age'
+    serializer_class = rDemoSerializer
+
+    def create(self, request, name, phone):
+        """
+        @api {post} v3/personlevel/names/:name/phones/:phone/ages 新增实例
+        """
+        # parameter initial
+        params = self.params_valid(request, serializer=rDemoSerializer)
+        age = params.get("age", 1)
+        address = params.get("address", "China")
+        logging.info("this is the name=%s, phone=%s, age=%s, address=%s" % (name, phone, age, address))
+
+        # create table
+        obj = Person.objects.create(name=name, phone=phone, age=age, address=address)
+        return Response({"result": True, "data": model_to_dict(obj), "message": "bkdata", "code": "89"})
+
+    def retrieve(self, request, name, phone, age):
+        """
+        @api {get} v3/personlevel/names/:name/phones/:phone/ages/:age 获取单个实例详情
+        """
+        # parameter initial
+        params = self.params_valid(request, serializer=rDemoSerializer, skip=True)
+
+        address = params.get("address")
+        logging.info("this is the name=%s, phone=%s, age=%s, address=%s" % (name, phone, age, address))
+
+        # table filter
+        obj = Person.objects.all()
+        if is_not_blank(name):
+            obj = obj.filter(name=name)
+        if is_not_blank(phone):
+            obj = obj.filter(phone=phone)
+        if age and age > 0:  # json para is not str
+            obj = obj.filter(age__gte=age)  # default is 1
+        if is_not_blank(address):
+            obj = obj.filter(address__contains=address)
+
+        # table render
+        return Response({"result": True, "data": obj.values(), "message": "bkdata", "code": "88"})
+
+    def update(self, request, name, phone, age):
+        """
+        @api {put} v3/personlevel/names/:name/phones/:phone/ages/:age 替换实例内容
+        """
+        # parameter initial
+        params = self.params_valid(request, serializer=rDemoSerializer)
+        age = params.get("age")
+        address = params.get("address")
+        logging.info("this is the name=%s, phone=%s, age=%s, address=%s" % (name, phone, age, address))
+
+        # table filter
+        obj = Person.objects.filter(name=name).filter(phone=phone)
+        if obj.count() > 0:
+            obj = obj.get()  # need to get the instance, otherwise UNIQUE constraint failed caused by save()
+            # table update
+            if age and age > 0:
+                obj.age = age
+            if is_not_blank(address):
+                obj.address = address
+            obj.save()
+            # table render
+            return Response({"result": True, "data": model_to_dict(obj), "message": "bkdata", "code": "89"})
+        else:
+            return Response({"result": False, "data": "record with name=%s, phone=%s not found" % (name, phone), "message": "bkdata", "code": "89"})
+
+    def destroy(self, request, name, phone, age):
+        """
+        @api {delete} v3/personlevel/names/:name/phones/:phone/ages/:age 删除实例
+        """
+        # parameter initial
+        params = self.params_valid(request, serializer=rDemoSerializer, skip=True)
+        address = params.get("address")
+        logging.info("this is the name=%s, phone=%s, age=%s, address=%s" % (name, phone, age, address))
+
+        # table filter
+        obj = Person.objects.all()
+        if is_not_blank(name):
+            obj = obj.filter(name=name)
+        if is_not_blank(phone):
+            obj = obj.filter(phone=phone)
+        if age and age > 0:
+            obj = obj.filter(age=age)  # default is 1
+        if is_not_blank(address):
+            obj = obj.filter(address=address)
+        cnt = obj.count()
+        obj.delete()
+        return Response({"result": True, "data": "destroy %s records" % cnt, "message": "bkdata", "code": "89"})
+
+
 def is_not_blank(str):
     """判断某字符串是否不为空且长度不为0且不由space构成"""
     """@see https://stackoverflow.com/questions/9573244/most-elegant-way-to-check-if-the-string-is-empty-in-python"""
-    return bool(str and str.strip())
+    return bool(str and str.strip() and str.strip() != "None")
